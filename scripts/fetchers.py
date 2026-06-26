@@ -101,6 +101,10 @@ def fetch_workday_api(org_name: str, tenant: str, board: str, base_url: str, con
     list_url = f"{base_url}/wday/cxs/{tenant}/{board}/jobs"
     url_prefix = (config or {}).get("url_prefix", "")
     search_text = (config or {}).get("search_text", "")
+    # Optional server-side facets to scope the listing (e.g. limit to one city /
+    # country). Shape mirrors Workday's payload, e.g.
+    # {"locations": ["<facet-id>"]}. Empty → fetch the whole board.
+    applied_facets = (config or {}).get("applied_facets", {}) or {}
     print(f"  [{org_name}] Workday API: {list_url}")
 
     jobs = []
@@ -117,7 +121,7 @@ def fetch_workday_api(org_name: str, tenant: str, board: str, base_url: str, con
         # ── Phase 1: Listing ─────────────────────────────────────────────────
         while True:
             payload = json.dumps({
-                "appliedFacets": {},
+                "appliedFacets": applied_facets,
                 "limit": limit,
                 "offset": offset,
                 "searchText": search_text,
